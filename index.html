@@ -120,8 +120,13 @@ let quizQuestions = [];
 
 function startQuiz() {
   
+
 const selectedExam =
-  document.getElementById("examType").value;
+  document.getElementById("examType")?.value
+  || window.selectedExam;
+
+window.selectedExam = selectedExam;
+
 
 console.log("選択した検定：", selectedExam);
 
