@@ -300,6 +300,24 @@ function nextQuestion() {
   showQuestion();
 }
 </script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDpXARufKNeaNgBOv30i83mQH5LXuswgBI",
+    authDomain: "kentei-bff27.firebaseapp.com",
+    projectId: "kentei-bff27",
+    storageBucket: "kentei-bff27.firebasestorage.app",
+    messagingSenderId: "693090582582",
+    appId: "1:693090582582:web:3a0d01c693dd9b6d779897"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>
