@@ -319,6 +319,39 @@ function nextQuestion() {
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  async function loadQuestions() {
+  try {
+    const snapshot = await getDocs(collection(db, "questions"));
+
+    const loadedQuestions = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+
+      loadedQuestions.push({
+        id: doc.id,
+        examId: data.examId,
+        question: data.question,
+        choices: [
+          data.choice1,
+          data.choice2,
+          data.choice3,
+          data.choice4
+        ],
+        answer: data.answer - 1
+      });
+    });
+
+    console.log("Firestoreから取得した問題：", loadedQuestions);
+
+    return loadedQuestions;
+
+  } catch (error) {
+    console.error("問題の取得に失敗しました：", error);
+    return [];
+  }
+}
 </script>
 </body>
 </html>
