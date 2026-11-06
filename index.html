@@ -117,6 +117,12 @@ let timerId = null;
 let quizQuestions = [];
 
 function startQuiz() {
+  
+const selectedExam =
+  document.getElementById("examType").value;
+
+console.log("選択した検定：", selectedExam);
+
   const QUESTION_COUNT = 3;
 
   // 問題数の確認
