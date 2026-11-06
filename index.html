@@ -139,14 +139,14 @@ if (current >= quizQuestions.length) {
   const endTime = new Date().toLocaleTimeString("ja-JP", {
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
+    // second: "2-digit",
     hour12: false
   });
 
   document.getElementById("app").innerHTML = `
     <h2>学習終了（${endTime}）</h2>
     <p>${quizQuestions.length}問中${score}問正解</p>
-    <h2>${score * 5}点</h2>
+    <h2>${Math.round(score / quizQuestions.length * 100)}点</h2>
     <button onclick="startQuiz()">もう一度挑戦</button>
   `;
   return;
