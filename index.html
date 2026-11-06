@@ -40,11 +40,33 @@
     <h1>検定学習システム</h1>
   </header>
 
+
 <main id="app">
   <h2>学習トレーニング</h2>
-  <p>4択問題で検定合格を目指しましょう。</p>
-  <button onclick="startQuiz()">学習を開始する</button>
+  <p>学習する検定を選択してください。</p>
+
+  <select id="examType" style="
+    width: 80%;
+    max-width: 400px;
+    padding: 12px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  ">
+    <option value="情報処理">情報処理</option>
+    <option value="情報処理２級">情報処理２級</option>
+    <option value="情報基礎">情報基礎</option>
+    <option value="文書３級">文書３級</option>
+    <option value="文書２級">文書２級</option>
+    <option value="文書１級">文書１級</option>
+  </select>
+
+  <p>
+    <button onclick="startQuiz()">学習を開始する</button>
+  </p>
 </main>
+
 
 <script>
 const questions = [
