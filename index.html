@@ -80,8 +80,15 @@ const questions = [
   }
 ];
 
+
 let current = 0;
 let score = 0;
+
+// 制限時間の設定
+const TIME_LIMIT = 20;
+let timeLeft = TIME_LIMIT;
+let timerId = null;
+
 
 function startQuiz() {
   current = 0;
