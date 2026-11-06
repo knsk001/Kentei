@@ -127,15 +127,19 @@ console.log("選択した検定：", selectedExam);
 
   const QUESTION_COUNT = 1;
 
-  // 問題数の確認
-  if (questions.length < QUESTION_COUNT) {
-    alert(
-      "問題が不足しています。\n" +
-      "現在：" + questions.length + "問\n" +
-      "必要：20問"
-    );
-    return;
-  }
+  // Firestoreから取得した問題を検定別に抽出
+const availableQuestions = (window.firestoreQuestions || [])
+  .filter(q => q.examId === selectedExam);
+
+// 問題数の確認
+if (availableQuestions.length < QUESTION_COUNT) {
+  alert(
+    "問題が不足しています。\n" +
+    "現在：" + availableQuestions.length + "問\n" +
+    "必要：" + QUESTION_COUNT + "問"
+  );
+  return;
+}
 
   // 元の問題データを残してコピー
   quizQuestions = (window.firestoreQuestions || []).filter(q => q.examId === selectedExam);
