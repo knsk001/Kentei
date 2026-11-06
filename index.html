@@ -92,7 +92,20 @@ let timerId = null;
 
 
 function startQuiz() {
-  // 問題の順番をランダムに並べ替える
+  // 出題数は20問固定
+  const QUESTION_COUNT = 20;
+
+  // 登録問題が20問未満なら開始しない
+  if (questions.length < QUESTION_COUNT) {
+    alert(
+      "問題が不足しています。\n" +
+      "現在：" + questions.length + "問\n" +
+      "必要：20問"
+    );
+    return;
+  }
+
+  // 問題をランダムに並べ替える
   for (let i = questions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
 
@@ -100,13 +113,15 @@ function startQuiz() {
       [questions[j], questions[i]];
   }
 
-  // 学習状態を初期化
+  // 20問だけ取り出す
+  questions.splice(QUESTION_COUNT);
+
   current = 0;
   score = 0;
 
-  // 最初の問題を表示
   showQuestion();
 }
+
 
 
 function showQuestion() {
