@@ -160,21 +160,30 @@ function showQuestion() {
 }
 
 
+
 function checkAnswer(selected) {
+  // 解答した瞬間にタイマーを停止
+  clearInterval(timerId);
+
   const q = questions[current];
   const correct = selected === q.answer;
 
   if (correct) score++;
 
+  // 正誤判定を表示
   document.getElementById("result").innerHTML = `
-    <h3>${correct ? "〇 正解！" : "× 不正解"}</h3>
+    <h3 style="color:${correct ? 'green' : 'red'};">
+      ${correct ? "〇 正解！" : "× 不正解"}
+    </h3>
     <p>正解：${q.choices[q.answer]}</p>
     <button onclick="nextQuestion()">次の問題へ</button>
   `;
 
+  // 解答後は選択肢を押せない
   document.querySelectorAll("#choices button")
     .forEach(btn => btn.disabled = true);
 }
+
 
 function nextQuestion() {
   current++;
