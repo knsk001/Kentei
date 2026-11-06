@@ -133,13 +133,25 @@ function startQuiz() {
 function showQuestion() {
   clearInterval(timerId);
 
-  if (current >= questions.length) {
-    document.getElementById("app").innerHTML =
-      `<h2>学習終了</h2>
-       <p>${questions.length}問中${score}問正解</p>
-       <button onclick="startQuiz()">もう一度挑戦</button>`;
-    return;
-  }
+  
+if (current >= quizQuestions.length) {
+  // 終了時刻を取得
+  const endTime = new Date().toLocaleTimeString("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+
+  document.getElementById("app").innerHTML = `
+    <h2>学習終了（${endTime}）</h2>
+    <p>${quizQuestions.length}問中${score}問正解</p>
+    <h2>${score * 5}点</h2>
+    <button onclick="startQuiz()">もう一度挑戦</button>
+  `;
+  return;
+}
+
 
   const q = questions[current];
 
