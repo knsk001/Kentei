@@ -160,7 +160,6 @@ function showQuestion() {
 }
 
 
-
 function checkAnswer(selected) {
   // 解答した瞬間にタイマーを停止
   clearInterval(timerId);
@@ -170,6 +169,26 @@ function checkAnswer(selected) {
 
   if (correct) score++;
 
+  // 選択肢の色を変更
+  const buttons =
+    document.querySelectorAll("#choices button");
+
+  buttons.forEach((btn, index) => {
+    btn.disabled = true;
+
+    // 正解は緑色
+    if (index === q.answer) {
+      btn.style.backgroundColor = "#28a745";
+      btn.style.color = "white";
+    }
+
+    // 選んだ不正解は赤色
+    if (index === selected && !correct) {
+      btn.style.backgroundColor = "#dc3545";
+      btn.style.color = "white";
+    }
+  });
+
   // 正誤判定を表示
   document.getElementById("result").innerHTML = `
     <h3 style="color:${correct ? 'green' : 'red'};">
@@ -178,11 +197,10 @@ function checkAnswer(selected) {
     <p>正解：${q.choices[q.answer]}</p>
     <button onclick="nextQuestion()">次の問題へ</button>
   `;
-
-  // 解答後は選択肢を押せない
-  document.querySelectorAll("#choices button")
-    .forEach(btn => btn.disabled = true);
 }
+
+
+
 
 
 function nextQuestion() {
