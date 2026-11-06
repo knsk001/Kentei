@@ -88,6 +88,12 @@ let quizQuestions = [];
 
 function startQuiz() {
   
+  // Firestoreの問題データが読み込まれるまで待つ
+  if (!window.firestoreQuestions) {
+    alert("問題データを読み込み中です。数秒後にもう一度お試しください。");
+    return;
+  }
+
 
 const selectedExam =
   document.getElementById("examType")?.value
