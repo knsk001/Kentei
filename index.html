@@ -228,7 +228,7 @@ function checkAnswer(selected) {
   // 解答した瞬間にタイマーを停止
   clearInterval(timerId);
 
-  const q = questions[current];
+  const q = quizQuestions[current];
   const correct = selected === q.answer;
 
   if (correct) score++;
