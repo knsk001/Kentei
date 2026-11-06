@@ -344,7 +344,7 @@ function nextQuestion() {
     });
 
     console.log("Firestoreから取得した問題：", loadedQuestions);
-
+　　window.firestoreQuestions = loadedQuestions;
     return loadedQuestions;
 
   } catch (error) {
