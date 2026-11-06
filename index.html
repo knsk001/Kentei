@@ -136,7 +136,7 @@ console.log("選択した検定：", selectedExam);
   }
 
   // 元の問題データを残してコピー
-  quizQuestions = [...questions];
+  quizQuestions = (window.firestoreQuestions || []).filter(q => q.examId === selectedExam);
 
   // 問題の順番をランダムに変更
   for (let i = quizQuestions.length - 1; i > 0; i--) {
