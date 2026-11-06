@@ -91,11 +91,13 @@ let timerId = null;
 
 
 
+
+let quizQuestions = [];
+
 function startQuiz() {
-  // 出題数は20問固定
   const QUESTION_COUNT = 20;
 
-  // 登録問題が20問未満なら開始しない
+  // 問題数の確認
   if (questions.length < QUESTION_COUNT) {
     alert(
       "問題が不足しています。\n" +
@@ -105,22 +107,26 @@ function startQuiz() {
     return;
   }
 
-  // 問題をランダムに並べ替える
-  for (let i = questions.length - 1; i > 0; i--) {
+  // 元の問題データを残してコピー
+  quizQuestions = [...questions];
+
+  // 問題の順番をランダムに変更
+  for (let i = quizQuestions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
 
-    [questions[i], questions[j]] =
-      [questions[j], questions[i]];
+    [quizQuestions[i], quizQuestions[j]] =
+      [quizQuestions[j], quizQuestions[i]];
   }
 
-  // 20問だけ取り出す
-  questions.splice(QUESTION_COUNT);
+  // 20問を抽出
+  quizQuestions = quizQuestions.slice(0, QUESTION_COUNT);
 
   current = 0;
   score = 0;
 
   showQuestion();
 }
+
 
 
 
