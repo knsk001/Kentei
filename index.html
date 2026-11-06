@@ -153,7 +153,7 @@ if (current >= quizQuestions.length) {
 }
 
 
-  const q = questions[current];
+  const q = quizQuestions[current];
 
   // 選択肢と正解情報をセットにする
   const shuffledChoices = q.choices.map(
@@ -177,7 +177,7 @@ if (current >= quizQuestions.length) {
   );
 
   document.getElementById("app").innerHTML = `
-    <h2>第${current + 1}問 / ${questions.length}問</h2>
+    <h2>第${current + 1}問 / ${quizQuestions.length}問</h2>
     <h3 id="timer" style="color:#1769aa;">
       残り時間：${TIME_LIMIT}秒
     </h3>
