@@ -90,11 +90,24 @@ let timeLeft = TIME_LIMIT;
 let timerId = null;
 
 
+
 function startQuiz() {
+  // 問題の順番をランダムに並べ替える
+  for (let i = questions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [questions[i], questions[j]] =
+      [questions[j], questions[i]];
+  }
+
+  // 学習状態を初期化
   current = 0;
   score = 0;
+
+  // 最初の問題を表示
   showQuestion();
 }
+
 
 
 function showQuestion() {
