@@ -191,6 +191,17 @@ if (availableQuestions.length < QUESTION_COUNT) {
     QUESTION_COUNT
   );
 
+  // 分野別の出題数を確認（先生用）
+  const groupCounts = {};
+
+  quizQuestions.forEach(q => {
+    const group = q.groupId || "未分類";
+    groupCounts[group] = (groupCounts[group] || 0) + 1;
+  });
+
+  console.log("分野別の出題数：");
+  console.table(groupCounts);
+
 
   current = 0;
   score = 0;
