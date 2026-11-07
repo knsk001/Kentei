@@ -649,9 +649,11 @@ document.getElementById("examType")
 </p>
 
 <p>
-  <button id="issueCodeButton" disabled>
-    全検定の受験番号を一括発行（準備中）
-  </button>
+  
+<button id="issueCodeButton">
+  全検定の受験番号を一括発行
+</button>
+
 </p>
 
 <div id="issuedCodeArea"></div>
@@ -769,6 +771,61 @@ async function saveExamCodes() {
     return null;
   }
 }
+
+document.getElementById("issueCodeButton")
+  .addEventListener("click", async () => {
+
+    const button = document.getElementById("issueCodeButton");
+    const area = document.getElementById("issuedCodeArea");
+    const list = document.getElementById("issuedCodeList");
+
+    if (!confirm("6検定の受験番号を一括発行します。以前の番号は無効になります。よろしいですか？")) {
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "発行中...";
+
+    try {
+      const codes = await saveExamCodes();
+
+      if (!codes) return;
+
+      const table = document.createElement("table");
+      table.style.width = "100%";
+      table.style.borderCollapse = "collapse";
+
+      const header = table.insertRow();
+      ["検定名", "受験番号"].forEach(label => {
+        const th = document.createElement("th");
+        th.textContent = label;
+        th.style.border = "1px solid #ccc";
+        th.style.padding = "8px";
+        header.appendChild(th);
+      });
+
+      codes.forEach(item => {
+        const row = table.insertRow();
+
+        [item.examName, item.code].forEach(value => {
+          const cell = row.insertCell();
+          cell.textContent = value;
+          cell.style.border = "1px solid #ccc";
+          cell.style.padding = "8px";
+        });
+      });
+
+      area.textContent = "6検定の受験番号を発行しました。";
+      list.replaceChildren(table);
+
+    } catch (error) {
+      console.error(error);
+      alert("受験番号の発行に失敗しました。");
+    } finally {
+      button.disabled = false;
+      button.textContent = "全検定の受験番号を一括発行";
+    }
+  });
 
 </script>
 
