@@ -86,13 +86,14 @@
     <option value="bunsho_1">文書１級</option>
   </select>
 
-  <h3>② 問題グループの登録</h3>
-  <p>登録する問題のグループ名を入力してください。</p>
-  <input
-    type="text"
-    id="groupName"
-    placeholder="例：第1回 基礎問題"
-  >
+  
+<h3>② CSVファイルから問題を一括登録</h3>
+<p>
+  CSVに記載された検定IDとグループ名をもとに、
+  問題を自動的に振り分けます。
+</p>
+
+
 
   <p>CSVファイルを選択してください。</p>
   <input type="file" id="csvFile" accept=".csv">
@@ -220,6 +221,26 @@ async function loadGroups() {
   } catch (error) {
     console.error("グループ取得エラー：", error);
     groupList.textContent = "グループを取得できませんでした。";
+  }
+}
+
+async function readCsvFile() {
+  const fileInput = document.getElementById("csvFile");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("CSVファイルを選択してください。");
+    return null;
+  }
+
+  try {
+    const text = await file.text();
+    console.log("CSVファイル読み込み完了：", file.name);
+    return text;
+  } catch (error) {
+    console.error("CSV読み込みエラー：", error);
+    alert("CSVファイルを読み込めませんでした。");
+    return null;
   }
 }
 
