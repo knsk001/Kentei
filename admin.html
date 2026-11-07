@@ -131,7 +131,11 @@
   </div>
 
   <p>
-    <button disabled>出題設定を保存（準備中）</button>
+    
+<button id="saveGroupButton">
+  出題設定を保存
+</button>
+
   </p>
   </section>
 </main>
@@ -612,6 +616,9 @@ async function saveGroupSettings() {
     alert("保存に失敗しました：" + error.message);
   }
 }
+
+document.getElementById("saveGroupButton")
+  .addEventListener("click", saveGroupSettings);
 
 </script>
 
