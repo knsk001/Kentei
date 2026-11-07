@@ -338,6 +338,74 @@ function parseCsv(text) {
   });
 }
 
+document.getElementById("csvFile").addEventListener("change", async () => {
+  const preview = document.getElementById("csvPreview");
+  const content = document.getElementById("csvPreviewContent");
+
+  preview.style.display = "block";
+  content.textContent = "CSVを確認しています...";
+
+  try {
+    const text = await readCsvFile();
+
+    if (text === null) {
+      preview.style.display = "none";
+      return;
+    }
+
+    const questions = parseCsv(text);
+
+    // 検定・グループごとの問題数を集計
+    const counts = new Map();
+
+    questions.forEach(q => {
+      const key = JSON.stringify([q.examId, q.group]);
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+
+    // プレビュー表示
+    content.replaceChildren();
+
+    const total = document.createElement("p");
+    total.textContent = `登録予定：${questions.length}問`;
+    content.appendChild(total);
+
+    const table = document.createElement("table");
+    table.style.width = "100%";
+
+    const header = document.createElement("tr");
+    ["検定ID", "グループ", "問題数"].forEach(name => {
+      const th = document.createElement("th");
+      th.textContent = name;
+      header.appendChild(th);
+    });
+    table.appendChild(header);
+
+    counts.forEach((count, key) => {
+      const [examId, group] = JSON.parse(key);
+      const tr = document.createElement("tr");
+
+      [examId, group, `${count}問`].forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = value;
+        td.style.padding = "8px";
+        tr.appendChild(td);
+      });
+
+      table.appendChild(tr);
+    });
+
+    content.appendChild(table);
+
+    // 後の登録処理で使用する
+    window.csvQuestions = questions;
+
+  } catch (error) {
+    window.csvQuestions = null;
+    content.textContent = "CSVエラー：" + error.message;
+  }
+});
+
 </script>
 
 </body>
