@@ -145,6 +145,9 @@ loginButton.addEventListener("click", async () => {
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
+    document.getElementById("loginArea").style.display = "none";
+document.getElementById("adminArea").style.display = "block";
+
     alert("ログインに成功しました。");
   } catch (error) {
     console.error("ログインエラー：", error.code);
