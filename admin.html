@@ -170,6 +170,8 @@ onAuthStateChanged(auth, (user) => {
     // ログイン済みの場合
     document.getElementById("loginArea").style.display = "none";
     document.getElementById("adminArea").style.display = "block";
+      // Firestoreからグループ一覧を取得
+  loadGroups();
   } else {
     // 未ログインの場合
     document.getElementById("loginArea").style.display = "block";
