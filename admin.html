@@ -177,6 +177,46 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
+async function loadGroups() {
+  const groupList = document.getElementById("groupList");
+
+  try {
+    const snapshot = await getDocs(collection(db, "groups"));
+
+    groupList.innerHTML = "";
+
+    if (snapshot.empty) {
+      groupList.textContent = "登録されているグループはありません。";
+      return;
+    }
+
+    snapshot.forEach((doc) => {
+      const group = doc.data();
+
+      const label = document.createElement("label");
+      label.style.display = "block";
+      label.style.margin = "12px 0";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = doc.id;
+      checkbox.checked = group.enabled === true;
+      checkbox.disabled = true;
+
+      label.appendChild(checkbox);
+      label.appendChild(
+        document.createTextNode(" " + (group.name || doc.id))
+      );
+
+      groupList.appendChild(label);
+    });
+
+  } catch (error) {
+    console.error("グループ取得エラー：", error);
+    groupList.textContent = "グループを取得できませんでした。";
+  }
+}
+
 </script>
 
 </body>
