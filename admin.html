@@ -146,11 +146,15 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
+
 import {
   getFirestore,
   collection,
-  getDocs
+  getDocs,
+  doc,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpXARufKNeaNgBOv30i83mQH5LXuswgBI",
@@ -400,11 +404,173 @@ document.getElementById("csvFile").addEventListener("change", async () => {
     content.appendChild(table);
 
     // 後の登録処理で使用する
-    window.csvQuestions = questions;
+    
+window.csvQuestions = questions;
+
+// CSVの確認が完了したら登録ボタンを有効にする
+document.getElementById("csvUploadButton").disabled = false;
+
 
   } catch (error) {
     window.csvQuestions = null;
     content.textContent = "CSVエラー：" + error.message;
+  }
+});
+
+function makeGroupId(examId, groupName) {
+  return JSON.stringify([examId, groupName]);
+}
+
+async function makeQuestionId(q) {
+  // 検定・グループ・問題内容からIDを生成
+  const source = JSON.stringify([
+    q.examId,
+    q.group,
+    q.question,
+    q.choice1,
+    q.choice2,
+    q.choice3,
+    q.choice4,
+    q.answer
+  ]);
+
+  const bytes = new TextEncoder().encode(source);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+
+  const hex = Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return "q_" + hex;
+}
+
+async function saveGroups(questions) {
+  // CSVから検定・グループの組み合わせを抽出
+  const groups = new Map();
+
+  questions.forEach(q => {
+    const id = makeGroupId(q.examId, q.group);
+
+    if (!groups.has(id)) {
+      groups.set(id, {
+        examId: q.examId,
+        name: q.group
+      });
+    }
+  });
+
+  // 既存のグループ設定を取得
+  const snapshot = await getDocs(collection(db, "groups"));
+  const existingIds = new Set(snapshot.docs.map(d => d.id));
+
+  // 新しいグループだけを登録
+  const newGroups = [...groups.entries()]
+    .filter(([id]) => !existingIds.has(id));
+
+  // Firestoreの書き込み上限に備えて分割
+  for (let i = 0; i < newGroups.length; i += 400) {
+    const batch = writeBatch(db);
+
+    newGroups.slice(i, i + 400).forEach(([id, group]) => {
+      batch.set(doc(db, "groups", id), {
+        ...group,
+        enabled: false
+      });
+    });
+
+    await batch.commit();
+  }
+
+  return newGroups.length;
+}
+
+async function saveQuestions(questions) {
+  let savedCount = 0;
+
+  // Firestoreの書き込み上限に備えて分割
+  for (let i = 0; i < questions.length; i += 400) {
+    const batch = writeBatch(db);
+    const chunk = questions.slice(i, i + 400);
+
+    for (const q of chunk) {
+      // 同じ問題内容なら同じIDを生成
+      const questionId = await makeQuestionId(q);
+
+      const questionRef = doc(db, "questions", questionId);
+
+      batch.set(questionRef, {
+        examId: q.examId,
+        groupId: makeGroupId(q.examId, q.group),
+        question: q.question,
+        choice1: q.choice1,
+        choice2: q.choice2,
+        choice3: q.choice3,
+        choice4: q.choice4,
+        answer: q.answer
+      });
+
+      savedCount++;
+    }
+
+    await batch.commit();
+  }
+
+  return savedCount;
+}
+
+const csvUploadButton =
+  document.getElementById("csvUploadButton");
+
+// CSVの解析が成功したときだけ登録可能にする
+const csvFileInput = document.getElementById("csvFile");
+
+
+csvFileInput.addEventListener("change", () => {
+  csvUploadButton.disabled = true;
+  window.csvQuestions = null;
+});
+
+
+
+csvUploadButton.addEventListener("click", async () => {
+  const questions = window.csvQuestions;
+
+  if (!Array.isArray(questions) || questions.length === 0) {
+    alert("登録できる問題がありません。");
+    return;
+  }
+
+  if (!auth.currentUser) {
+    alert("先生用アカウントでログインしてください。");
+    return;
+  }
+
+  if (!confirm(
+    `${questions.length}問をFirestoreに登録します。よろしいですか？`
+  )) {
+    return;
+  }
+
+  csvUploadButton.disabled = true;
+
+  try {
+    const groupCount = await saveGroups(questions);
+    const questionCount = await saveQuestions(questions);
+
+    alert(
+      `登録が完了しました。\n` +
+      `新規グループ：${groupCount}件\n` +
+      `処理した問題：${questionCount}問`
+    );
+
+    await loadGroups();
+  } catch (error) {
+    console.error("CSV登録エラー：", error);
+    alert("登録中にエラーが発生しました：" + error.message);
+  } finally {
+      csvUploadButton.disabled =
+    !Array.isArray(window.csvQuestions) ||
+    window.csvQuestions.length === 0;
   }
 });
 
