@@ -71,7 +71,11 @@
 
 
   <p>
-    <button onclick="startQuiz()">学習を開始する</button>
+    
+<button onclick="verifyAndStartQuiz()">
+  学習を開始する
+</button>
+
   </p>
 </main>
 
@@ -101,11 +105,14 @@ function startQuiz() {
   }
 
 
-const selectedExam =
-  document.getElementById("examType")?.value
-  || window.selectedExam;
 
-window.selectedExam = selectedExam;
+const selectedExam = window.selectedExam;
+
+if (!selectedExam) {
+  alert("受験番号を入力してから開始してください。");
+  return;
+}
+
 
 
 console.log("選択した検定：", selectedExam);
@@ -294,7 +301,15 @@ function nextQuestion() {
 <script type="module">
   // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+  
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
   // TODO: Add SDKs for Firebase products that you want to use
   // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -387,6 +402,73 @@ async function getEnabledGroupIds(examId) {
 
   return enabledGroupIds;
 }
+
+async function verifyExamCode() {
+  const input = document.getElementById("examCode");
+
+  if (!input) {
+    alert("受験番号の入力欄が見つかりません。");
+    return;
+  }
+
+  const code = input.value.trim();
+
+  // 3桁の数字か確認
+  if (!/^[0-9]{3}$/.test(code)) {
+    alert("受験番号は3桁の数字で入力してください。");
+    return;
+  }
+
+  try {
+    // Firestoreから受験番号を照合
+    const codeRef = doc(db, "examCodes", code);
+    const codeSnapshot = await getDoc(codeRef);
+
+    if (!codeSnapshot.exists()) {
+      alert("受験番号が登録されていません。");
+      return;
+    }
+
+    const data = codeSnapshot.data();
+
+    if (data.enabled !== true) {
+      alert("この受験番号は現在使用できません。");
+      return;
+    }
+
+    // 対応する検定を記録
+    window.selectedExam = data.examId;
+
+    return data.examId;
+
+  } catch (error) {
+    console.error("受験番号照合エラー：", error);
+    alert("受験番号を確認できませんでした。");
+    return;
+  }
+}
+
+// HTML側から呼び出せるようにする
+window.verifyExamCode = verifyExamCode;
+
+async function verifyAndStartQuiz() {
+  // 受験番号を照合して検定を判定
+  const examId = await verifyExamCode();
+
+  // 照合できなければ開始しない
+  if (!examId) {
+    return;
+  }
+
+  // 判定された検定を設定
+  window.selectedExam = examId;
+
+  // 既存の学習開始処理を実行
+  startQuiz();
+}
+
+// HTMLの開始ボタンから呼び出せるようにする
+window.verifyAndStartQuiz = verifyAndStartQuiz;
 
 </script>
 </body>
