@@ -661,6 +661,115 @@ document.getElementById("examType")
   受験番号の一覧は準備中です。
 </div>
 
+function generateExamCodes() {
+  // 現在登録されている6種類の検定
+  const exams = [
+    { id: "joho_shori", name: "情報処理" },
+    { id: "joho_shori_2", name: "情報処理２級" },
+    { id: "joho_kiso", name: "情報基礎" },
+    { id: "bunsho_3", name: "文書３級" },
+    { id: "bunsho_2", name: "文書２級" },
+    { id: "bunsho_1", name: "文書１級" }
+  ];
+
+  // 今回の発行分で番号が重複しないようにする
+  const usedCodes = new Set();
+
+  return exams.map(exam => {
+    let code;
+
+    do {
+      const number = new Uint32Array(1);
+      crypto.getRandomValues(number);
+      code = String(number[0] % 1000).padStart(3, "0");
+    } while (usedCodes.has(code));
+
+    usedCodes.add(code);
+
+    return {
+      examId: exam.id,
+      examName: exam.name,
+      code: code
+    };
+  });
+}
+
+async function saveExamCodes() {
+  if (!auth.currentUser) {
+    alert("先生用アカウントでログインしてください。");
+    return;
+  }
+
+  try {
+    // 既存の番号を取得
+    const snapshot = await getDocs(
+      collection(db, "examCodes")
+    );
+
+    // 既存の番号を含め、重複を防止する
+    const usedCodes = new Set(
+      snapshot.docs.map(d => d.id)
+    );
+
+    const exams = [
+      { id: "joho_shori", name: "情報処理" },
+      { id: "joho_shori_2", name: "情報処理２級" },
+      { id: "joho_kiso", name: "情報基礎" },
+      { id: "bunsho_3", name: "文書３級" },
+      { id: "bunsho_2", name: "文書２級" },
+      { id: "bunsho_1", name: "文書１級" }
+    ];
+
+    // 6検定分の番号を生成
+    const codes = exams.map(exam => {
+      let code;
+
+      do {
+        const number = new Uint32Array(1);
+        crypto.getRandomValues(number);
+        code = String(number[0] % 1000).padStart(3, "0");
+      } while (usedCodes.has(code));
+
+      usedCodes.add(code);
+
+      return {
+        examId: exam.id,
+        examName: exam.name,
+        code
+      };
+    });
+
+    // 新しい番号と既存番号の無効化を一括保存
+    const batch = writeBatch(db);
+
+    snapshot.forEach(oldDoc => {
+      if (oldDoc.data().enabled === true) {
+        batch.update(oldDoc.ref, {
+          enabled: false
+        });
+      }
+    });
+
+    codes.forEach(item => {
+      batch.set(doc(db, "examCodes", item.code), {
+        examId: item.examId,
+        examName: item.examName,
+        enabled: true,
+        createdAt: new Date().toISOString()
+      });
+    });
+
+    await batch.commit();
+
+    return codes;
+
+  } catch (error) {
+    console.error("受験番号の保存エラー：", error);
+    alert("受験番号を保存できませんでした：" + error.message);
+    return null;
+  }
+}
+
 </script>
 
 </body>
