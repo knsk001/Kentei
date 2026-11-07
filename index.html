@@ -218,12 +218,14 @@ function showQuestion() {
   
 if (current >= quizQuestions.length) {
   // 終了時刻を取得
-  const endTime = new Date().toLocaleTimeString("ja-JP", {
-    hour: "2-digit",
-    minute: "2-digit",
-    // second: "2-digit",
-    hour12: false
-  });
+  const endTime = new Date().toLocaleString("ja-JP", {
+  //year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false
+});
 
   document.getElementById("app").innerHTML = `
     <h2>学習終了（${endTime}）</h2>
