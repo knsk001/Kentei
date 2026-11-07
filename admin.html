@@ -990,6 +990,83 @@ async function loadManageQuestions() {
       answer.textContent = `正解：${q.answer}`;
       box.appendChild(answer);
 
+      // 問題の編集ボタン
+      const editButton = document.createElement("button");
+      editButton.textContent = "編集";
+      editButton.style.marginTop = "10px";
+
+      editButton.addEventListener("click", () => {
+        // 問題文
+        const newQuestion = prompt("問題文を編集してください", q.question);
+        if (newQuestion === null) return;
+
+        const newChoices = [];
+
+        // 選択肢1～4
+        for (let i = 1; i <= 4; i++) {
+          const value = prompt(
+            `選択肢${i}を編集してください`,
+            q["choice" + i]
+          );
+
+          if (value === null) return;
+          newChoices.push(value);
+        }
+
+        // 正解番号
+        const newAnswer = prompt(
+          "正解番号を入力してください（1～4）",
+          q.answer
+        );
+
+        if (newAnswer === null) return;
+
+        
+        // 入力内容を確認
+        const updatedQuestion = newQuestion.trim();
+        const updatedChoices = newChoices.map(v => v.trim());
+        const updatedAnswer = String(newAnswer).trim();
+
+        if (
+          !updatedQuestion ||
+          updatedChoices.some(v => !v) ||
+          !["1", "2", "3", "4"].includes(updatedAnswer)
+        ) {
+          alert("未入力の項目があります。正解番号は1～4で入力してください。");
+          return;
+        }
+
+        if (!confirm("この内容で問題を更新しますか？")) {
+          return;
+        }
+
+        // Firestoreへ保存
+        editButton.disabled = true;
+
+        try {
+          await updateDoc(doc(db, "questions", q.id), {
+            question: updatedQuestion,
+            choice1: updatedChoices[0],
+            choice2: updatedChoices[1],
+            choice3: updatedChoices[2],
+            choice4: updatedChoices[3],
+            answer: Number(updatedAnswer)
+          });
+
+          alert("問題を更新しました。");
+          await loadManageQuestions();
+
+        } catch (error) {
+          console.error("問題更新エラー：", error);
+          alert("問題を更新できませんでした：" + error.message);
+        } finally {
+          editButton.disabled = false;
+        }
+
+      });
+
+      box.appendChild(editButton);
+
       area.appendChild(box);
     });
 
