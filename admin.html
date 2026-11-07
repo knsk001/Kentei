@@ -995,7 +995,7 @@ async function loadManageQuestions() {
       editButton.textContent = "編集";
       editButton.style.marginTop = "10px";
 
-      editButton.addEventListener("click", () => {
+      editButton.addEventListener("click", async () => {
         // 問題文
         const newQuestion = prompt("問題文を編集してください", q.question);
         if (newQuestion === null) return;
