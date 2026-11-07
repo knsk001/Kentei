@@ -96,6 +96,57 @@ let timerId = null;
 
 let quizQuestions = [];
 
+function selectBalancedQuestions(questions, count) {
+  // 分野ごとに問題を分類
+  const groups = new Map();
+
+  questions.forEach(q => {
+    if (!groups.has(q.groupId)) {
+      groups.set(q.groupId, []);
+    }
+    groups.get(q.groupId).push(q);
+  });
+
+  // ランダムに並べ替える関数
+  function shuffle(array) {
+    const result = [...array];
+
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+
+    return result;
+  }
+
+  // 分野内の問題をランダム化
+  const pools = shuffle(
+    [...groups.values()].map(shuffle)
+  );
+
+  const selected = [];
+
+  // 各分野から1問ずつ順番に選ぶ
+  while (selected.length < count) {
+    let added = false;
+
+    for (const pool of pools) {
+      if (selected.length >= count) break;
+
+      if (pool.length > 0) {
+        selected.push(pool.pop());
+        added = true;
+      }
+    }
+
+    // 全分野の問題を使い切った場合
+    if (!added) break;
+  }
+
+  // 最後に出題順をランダム化
+  return shuffle(selected);
+}
+
 function startQuiz() {
   
   // Firestoreの問題データが読み込まれるまで待つ
@@ -133,19 +184,13 @@ if (availableQuestions.length < QUESTION_COUNT) {
   return;
 }
 
-  // 元の問題データを残してコピー
-  quizQuestions = (window.firestoreQuestions || []).filter(q => q.examId === selectedExam);
+ 
+  // 各分野から均等に10問をランダム選択
+  quizQuestions = selectBalancedQuestions(
+    availableQuestions,
+    QUESTION_COUNT
+  );
 
-  // 問題の順番をランダムに変更
-  for (let i = quizQuestions.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-
-    [quizQuestions[i], quizQuestions[j]] =
-      [quizQuestions[j], quizQuestions[i]];
-  }
-
-  // 20問を抽出
-  quizQuestions = quizQuestions.slice(0, QUESTION_COUNT);
 
   current = 0;
   score = 0;
