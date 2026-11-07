@@ -610,8 +610,15 @@ async function saveGroupSettings() {
   try {
     const batch = writeBatch(db);
 
-    checkboxes.forEach(checkbox => {
-      const groupRef = doc(db, "groups", checkbox.value);
+    
+checkboxes.forEach(checkbox => {
+  console.log("保存するグループ：", {
+    groupId: checkbox.value,
+    enabled: checkbox.checked
+  });
+
+  const groupRef = doc(db, "groups", checkbox.value);
+
 
       batch.update(groupRef, {
         enabled: checkbox.checked
