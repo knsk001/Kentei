@@ -224,8 +224,13 @@ onAuthStateChanged(auth, (user) => {
     // ログイン済みの場合
     document.getElementById("loginArea").style.display = "none";
     document.getElementById("adminArea").style.display = "block";
-      // Firestoreからグループ一覧を取得
-  loadGroups();
+    
+    // Firestoreからグループ一覧を取得
+    loadGroups();
+
+    // 発行済みの受験番号を表示
+    loadIssuedCodes();
+
   } else {
     // 未ログインの場合
     document.getElementById("loginArea").style.display = "block";
@@ -828,6 +833,73 @@ document.getElementById("issueCodeButton")
       button.textContent = "全検定の受験番号を一括発行";
     }
   });
+
+async function loadIssuedCodes() {
+  const list = document.getElementById("issuedCodeList");
+
+  if (!list || !auth.currentUser) return;
+
+  list.textContent = "受験番号を読み込んでいます...";
+
+  try {
+    const snapshot = await getDocs(
+      collection(db, "examCodes")
+    );
+
+    const codes = snapshot.docs
+      .map(d => ({ code: d.id, ...d.data() }))
+      .filter(item => item.enabled === true);
+
+    const examOrder = [
+      "joho_shori",
+      "joho_shori_2",
+      "joho_kiso",
+      "bunsho_3",
+      "bunsho_2",
+      "bunsho_1"
+    ];
+
+    codes.sort((a, b) =>
+      examOrder.indexOf(a.examId) -
+      examOrder.indexOf(b.examId)
+    );
+
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.borderCollapse = "collapse";
+
+    const header = table.insertRow();
+
+    ["検定名", "受験番号"].forEach(value => {
+      const th = document.createElement("th");
+      th.textContent = value;
+      th.style.padding = "8px";
+      th.style.border = "1px solid #ccc";
+      header.appendChild(th);
+    });
+
+    codes.forEach(item => {
+      const row = table.insertRow();
+
+      [item.examName, item.code].forEach(value => {
+        const cell = row.insertCell();
+        cell.textContent = value;
+        cell.style.padding = "8px";
+        cell.style.border = "1px solid #ccc";
+      });
+    });
+
+    list.replaceChildren(table);
+
+    if (codes.length === 0) {
+      list.textContent = "有効な受験番号はありません。";
+    }
+
+  } catch (error) {
+    console.error("受験番号取得エラー：", error);
+    list.textContent = "受験番号を取得できませんでした。";
+  }
+}
 
 </script>
 
