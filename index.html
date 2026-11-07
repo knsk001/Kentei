@@ -43,26 +43,32 @@
 
 <main id="app">
   <h2>学習トレーニング</h2>
-  <p>学習する検定を選択してください。</p>
 
-  <select id="examType" style="
-    width: 80%;
-    max-width: 400px;
-    padding: 12px;
-    font-size: 16px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-  ">
-    
-<option value="joho_shori">情報処理</option>
-<option value="joho_shori_2">情報処理２級</option>
-<option value="joho_kiso">情報基礎</option>
-<option value="bunsho_3">文書３級</option>
-<option value="bunsho_2">文書２級</option>
-<option value="bunsho_1">文書１級</option>
+  
+<div id="examCodeArea">
+  <h3>受験番号を入力してください</h3>
 
-  </select>
+  <p>
+    先生から指定された3桁の番号を入力します。
+  </p>
+
+  <input
+    type="text"
+    id="examCode"
+    inputmode="numeric"
+    maxlength="3"
+    pattern="[0-9]{3}"
+    placeholder="例：123"
+    autocomplete="off"
+    style="
+      font-size: 24px;
+      width: 120px;
+      text-align: center;
+      padding: 10px;
+    "
+  >
+</div>
+
 
   <p>
     <button onclick="startQuiz()">学習を開始する</button>
