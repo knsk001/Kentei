@@ -305,18 +305,39 @@ function nextQuestion() {
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  async function loadQuestions() {
+  
+
+async function loadQuestions() {
   try {
+    // 問題とグループ設定を取得
     const snapshot = await getDocs(collection(db, "questions"));
+    const groupSnapshot = await getDocs(collection(db, "groups"));
+
+    // 先生がチェックしたグループを取得
+    const enabledGroups = new Set();
+
+    groupSnapshot.forEach(groupDoc => {
+      const group = groupDoc.data();
+
+      if (group.enabled === true) {
+        enabledGroups.add(groupDoc.id);
+      }
+    });
 
     const loadedQuestions = [];
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    snapshot.forEach(questionDoc => {
+      const data = questionDoc.data();
+
+      // チェックされていないグループの問題は除外
+      if (!data.groupId || !enabledGroups.has(data.groupId)) {
+        return;
+      }
 
       loadedQuestions.push({
-        id: doc.id,
+        id: questionDoc.id,
         examId: data.examId,
+        groupId: data.groupId,
         question: data.question,
         choices: [
           data.choice1,
@@ -328,15 +349,18 @@ function nextQuestion() {
       });
     });
 
-    console.log("Firestoreから取得した問題：", loadedQuestions);
-　　window.firestoreQuestions = loadedQuestions;
+    console.log("出題対象の問題：", loadedQuestions);
+
+    window.firestoreQuestions = loadedQuestions;
     return loadedQuestions;
 
   } catch (error) {
     console.error("問題の取得に失敗しました：", error);
+    window.firestoreQuestions = [];
     return [];
   }
 }
+
   loadQuestions();
   
 async function getEnabledGroupIds(examId) {
