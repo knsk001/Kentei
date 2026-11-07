@@ -155,6 +155,19 @@ document.getElementById("adminArea").style.display = "block";
     alert("ログインできませんでした。メールアドレスとパスワードを確認してください。");
   }
 });
+  
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // ログイン済みの場合
+    document.getElementById("loginArea").style.display = "none";
+    document.getElementById("adminArea").style.display = "block";
+  } else {
+    // 未ログインの場合
+    document.getElementById("loginArea").style.display = "block";
+    document.getElementById("adminArea").style.display = "none";
+  }
+});
+
 </script>
 
 </body>
