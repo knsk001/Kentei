@@ -98,6 +98,19 @@
   <p>CSVファイルを選択してください。</p>
   <input type="file" id="csvFile" accept=".csv">
 
+<div id="csvPreview" style="
+  margin: 20px auto;
+  padding: 15px;
+  max-width: 600px;
+  background: #f3f6fa;
+  border-radius: 8px;
+  text-align: left;
+  display: none;
+">
+  <h4>CSV登録内容の確認</h4>
+  <div id="csvPreviewContent"></div>
+</div>
+
   <p>
     
 <button id="csvUploadButton" disabled>
@@ -242,6 +255,87 @@ async function readCsvFile() {
     alert("CSVファイルを読み込めませんでした。");
     return null;
   }
+}
+
+function parseCsv(text) {
+  // CSVを行・列に分解（引用符内のカンマや改行にも対応）
+  const rows = [];
+  let row = [];
+  let value = "";
+  let quoted = false;
+
+  text = text.replace(/^\uFEFF/, "");
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+
+    if (c === '"') {
+      if (quoted && text[i + 1] === '"') {
+        value += '"';
+        i++;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (c === "," && !quoted) {
+      row.push(value);
+      value = "";
+    } else if ((c === "\n" || c === "\r") && !quoted) {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(value);
+      rows.push(row);
+      row = [];
+      value = "";
+    } else {
+      value += c;
+    }
+  }
+
+  if (quoted) {
+    throw new Error("CSVの引用符が閉じられていません。");
+  }
+
+  if (value !== "" || row.length > 0) {
+    row.push(value);
+    rows.push(row);
+  }
+
+  // 空行を除外
+  const validRows = rows.filter(r =>
+    r.some(cell => cell.trim() !== "")
+  );
+
+  const headers = [
+    "examId", "group", "question",
+    "choice1", "choice2", "choice3",
+    "choice4", "answer"
+  ];
+
+  if (!validRows.length ||
+      validRows[0].map(v => v.trim()).join(",") !== headers.join(",")) {
+    throw new Error("CSVの見出し8列が正しくありません。");
+  }
+
+  return validRows.slice(1).map((r, i) => {
+    if (r.length !== 8) {
+      throw new Error(`${i + 2}行目の列数が8列ではありません。`);
+    }
+
+    const data = Object.fromEntries(
+      headers.map((key, j) => [key, r[j].trim()])
+    );
+
+    const answer = Number(data.answer);
+
+    if (!data.examId || !data.group ||
+        !data.question || !data.choice1 ||
+        !data.choice2 || !data.choice3 ||
+        !data.choice4 ||
+        !["1", "2", "3", "4"].includes(data.answer)) {
+      throw new Error(`${i + 2}行目に未入力または不正な値があります。`);
+    }
+
+    return { ...data, answer };
+  });
 }
 
 </script>
