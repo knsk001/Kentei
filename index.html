@@ -338,6 +338,26 @@ function nextQuestion() {
   }
 }
   loadQuestions();
+  
+async function getEnabledGroupIds(examId) {
+  const snapshot = await getDocs(collection(db, "groups"));
+
+  const enabledGroupIds = new Set();
+
+  snapshot.forEach(groupDoc => {
+    const group = groupDoc.data();
+
+    if (
+      group.examId === examId &&
+      group.enabled === true
+    ) {
+      enabledGroupIds.add(groupDoc.id);
+    }
+  });
+
+  return enabledGroupIds;
+}
+
 </script>
 </body>
 </html>
