@@ -147,13 +147,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 
+
 import {
   getFirestore,
   collection,
   getDocs,
   doc,
-  writeBatch
+  writeBatch,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
 
 
 const firebaseConfig = {
@@ -227,7 +230,8 @@ async function loadGroups() {
       checkbox.type = "checkbox";
       checkbox.value = doc.id;
       checkbox.checked = group.enabled === true;
-      checkbox.disabled = true;
+      checkbox.disabled = false;
+
 
       label.appendChild(checkbox);
       label.appendChild(
@@ -573,6 +577,41 @@ csvUploadButton.addEventListener("click", async () => {
     window.csvQuestions.length === 0;
   }
 });
+
+async function saveGroupSettings() {
+  const checkboxes = document.querySelectorAll(
+    "#groupList input[type='checkbox']"
+  );
+
+  if (checkboxes.length === 0) {
+    alert("保存するグループがありません。");
+    return;
+  }
+
+  if (!auth.currentUser) {
+    alert("先生用アカウントでログインしてください。");
+    return;
+  }
+
+  try {
+    const batch = writeBatch(db);
+
+    checkboxes.forEach(checkbox => {
+      const groupRef = doc(db, "groups", checkbox.value);
+
+      batch.update(groupRef, {
+        enabled: checkbox.checked
+      });
+    });
+
+    await batch.commit();
+
+    alert("出題設定を保存しました。");
+  } catch (error) {
+    console.error("出題設定の保存エラー：", error);
+    alert("保存に失敗しました：" + error.message);
+  }
+}
 
 </script>
 
