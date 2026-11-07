@@ -142,7 +142,24 @@
   
 <hr>
 
-<h3>④ 受験番号の一括発行・管理</h3>
+<h3>④ 登録済み問題の編集・削除</h3>
+
+<p>
+  選択した検定の登録済み問題を確認し、
+  編集・削除できます。
+</p>
+
+<button id="loadQuestionsButton">
+  登録済み問題を表示
+</button>
+
+<div id="questionManageArea"
+     style="margin-top:20px; text-align:left;">
+</div>
+
+<hr>
+
+<h3>⑤ 受験番号の一括発行・管理</h3>
 
 <p>
   6種類の検定の受験番号を同時に発行します。
@@ -900,6 +917,90 @@ async function loadIssuedCodes() {
     list.textContent = "受験番号を取得できませんでした。";
   }
 }
+
+async function loadManageQuestions() {
+  const area = document.getElementById("questionManageArea");
+  const examId = document.getElementById("examType").value;
+
+  if (!auth.currentUser) {
+    alert("先生用アカウントでログインしてください。");
+    return;
+  }
+
+  area.textContent = "問題を読み込んでいます...";
+
+  try {
+    const [questionSnapshot, groupSnapshot] = await Promise.all([
+      getDocs(collection(db, "questions")),
+      getDocs(collection(db, "groups"))
+    ]);
+
+    const groupNames = new Map();
+    groupSnapshot.forEach(d => {
+      groupNames.set(d.id, d.data().name || d.id);
+    });
+
+    const questions = questionSnapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(q => q.examId === examId)
+      .sort((a, b) =>
+        (groupNames.get(a.groupId) || "").localeCompare(
+          groupNames.get(b.groupId) || "", "ja"
+        )
+      );
+
+    area.replaceChildren();
+
+    const count = document.createElement("p");
+    count.textContent = `登録済み：${questions.length}問`;
+    area.appendChild(count);
+
+    if (questions.length === 0) {
+      area.append("この検定には問題が登録されていません。");
+      return;
+    }
+
+    questions.forEach((q, index) => {
+      const box = document.createElement("div");
+      box.style.padding = "12px";
+      box.style.marginBottom = "12px";
+      box.style.border = "1px solid #ccc";
+      box.style.borderRadius = "8px";
+
+      const heading = document.createElement("strong");
+      heading.textContent =
+        `問題${index + 1}【${groupNames.get(q.groupId) || "未分類"}】`;
+      box.appendChild(heading);
+
+      const question = document.createElement("p");
+      question.textContent = q.question;
+      box.appendChild(question);
+
+      for (let i = 1; i <= 4; i++) {
+        const choice = document.createElement("p");
+        choice.style.margin = "5px 0";
+        choice.textContent = `${i}. ${q["choice" + i]}`;
+        if (Number(q.answer) === i) {
+          choice.style.fontWeight = "bold";
+        }
+        box.appendChild(choice);
+      }
+
+      const answer = document.createElement("p");
+      answer.textContent = `正解：${q.answer}`;
+      box.appendChild(answer);
+
+      area.appendChild(box);
+    });
+
+  } catch (error) {
+    console.error("問題一覧取得エラー：", error);
+    area.textContent = "問題一覧を取得できませんでした。";
+  }
+}
+
+document.getElementById("loadQuestionsButton")
+  .addEventListener("click", loadManageQuestions);
 
 </script>
 
