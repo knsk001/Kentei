@@ -640,6 +640,27 @@ document.getElementById("saveGroupButton")
 document.getElementById("examType")
   .addEventListener("change", loadGroups);
 
+<hr>
+
+<h3>④ 受験番号の一括発行・管理</h3>
+
+<p>
+  すべての検定の受験番号を同時に発行します。
+</p>
+
+<p>
+  <button id="issueCodeButton" disabled>
+    全検定の受験番号を一括発行（準備中）
+  </button>
+</p>
+
+<div id="issuedCodeArea"></div>
+
+<h4>発行済み受験番号</h4>
+<div id="issuedCodeList">
+  受験番号の一覧は準備中です。
+</div>
+
 </script>
 
 </body>
