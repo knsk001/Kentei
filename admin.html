@@ -198,7 +198,8 @@ import {
   getDocs,
   doc,
   writeBatch,
-  updateDoc
+  updateDoc,
+   deleteDoc
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
 
@@ -1066,6 +1067,42 @@ async function loadManageQuestions() {
       });
 
       box.appendChild(editButton);
+　　　
+      // 問題の削除ボタン
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "削除";
+      deleteButton.style.marginLeft = "10px";
+      deleteButton.style.background = "#c62828";
+
+      deleteButton.addEventListener("click", async () => {
+        // 削除前の確認
+        const confirmed = confirm(
+          "次の問題を削除しますか？\n\n" +
+          q.question + "\n\n" +
+          "※削除した問題は元に戻せません。"
+        );
+
+        if (!confirmed) return;
+
+        deleteButton.disabled = true;
+
+        try {
+          // Firestoreから問題を削除
+          await deleteDoc(doc(db, "questions", q.id));
+
+          alert("問題を削除しました。");
+
+          // 問題一覧を更新
+          await loadManageQuestions();
+
+        } catch (error) {
+          console.error("問題削除エラー：", error);
+          alert("問題を削除できませんでした：" + error.message);
+          deleteButton.disabled = false;
+        }
+      });
+
+      box.appendChild(deleteButton);
 
       area.appendChild(box);
     });
