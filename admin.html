@@ -41,13 +41,48 @@
     <p>先生用管理画面</p>
   </header>
 
-  <main>
-    <h2>問題データ管理</h2>
-    <p>CSVファイルから検定問題を一括登録します。</p>
+  
+<main>
+  <h2>問題データ管理</h2>
 
-    <p>現在、管理機能を準備しています。</p>
+  <h3>① 検定の選択</h3>
+  <select id="examType">
+    <option value="joho_shori">情報処理</option>
+    <option value="joho_shori_2">情報処理２級</option>
+    <option value="joho_kiso">情報基礎</option>
+    <option value="bunsho_3">文書３級</option>
+    <option value="bunsho_2">文書２級</option>
+    <option value="bunsho_1">文書１級</option>
+  </select>
 
-    <button disabled>CSV登録（準備中）</button>
-  </main>
+  <h3>② 問題グループの登録</h3>
+  <p>登録する問題のグループ名を入力してください。</p>
+  <input
+    type="text"
+    id="groupName"
+    placeholder="例：第1回 基礎問題"
+  >
+
+  <p>CSVファイルを選択してください。</p>
+  <input type="file" id="csvFile" accept=".csv">
+
+  <p>
+    <button disabled>CSVを登録（準備中）</button>
+  </p>
+
+  <hr>
+
+  <h3>③ 出題するグループの選択</h3>
+  <p>チェックしたグループから生徒に出題します。</p>
+
+  <div id="groupList">
+    グループ一覧は準備中です。
+  </div>
+
+  <p>
+    <button disabled>出題設定を保存（準備中）</button>
+  </p>
+</main>
+
 </body>
 </html>
