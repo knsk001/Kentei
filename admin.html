@@ -223,8 +223,18 @@ async function loadGroups() {
       return;
     }
 
-    snapshot.forEach((doc) => {
-      const group = doc.data();
+    
+const selectedExamId =
+  document.getElementById("examType").value;
+
+snapshot.forEach((doc) => {
+  const group = doc.data();
+
+  // 選択中の検定に属するグループだけ表示
+  if (group.examId !== selectedExamId) {
+    return;
+  }
+
 
       const label = document.createElement("label");
       label.style.display = "block";
@@ -619,6 +629,9 @@ async function saveGroupSettings() {
 
 document.getElementById("saveGroupButton")
   .addEventListener("click", saveGroupSettings);
+
+document.getElementById("examType")
+  .addEventListener("change", loadGroups);
 
 </script>
 
