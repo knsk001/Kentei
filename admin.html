@@ -382,7 +382,7 @@ function parseCsv(text) {
 
   if (!validRows.length ||
       validRows[0].map(v => v.trim()).join(",") !== headers.join(",")) {
-    throw new Error("CSVの見出し8列が正しくありません。");
+    throw new Error("CSVの見出し9列が正しくありません。");
   }
 
   return validRows.slice(1).map((r, i) => {
@@ -396,7 +396,16 @@ if (r.length !== 9) {
     );
 
     const answer = Number(data.answer);
-
+　　// 画像ファイル名の確認（空欄は許可）
+if (
+  data.image &&
+  !/^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$/i.test(data.image)
+) {
+  throw new Error(
+    `${i + 2}行目の画像ファイル名が正しくありません。`
+  );
+}
+    
     if (!data.examId || !data.group ||
         !data.question || !data.choice1 ||
         !data.choice2 || !data.choice3 ||
@@ -564,15 +573,15 @@ async function saveQuestions(questions) {
       const questionRef = doc(db, "questions", questionId);
 
       batch.set(questionRef, {
-        examId: q.examId,
-        groupId: makeGroupId(q.examId, q.group),
-        question: q.question,
-        choice1: q.choice1,
-        choice2: q.choice2,
-        choice3: q.choice3,
-        choice4: q.choice4,
-        answer: q.answer
-      });
+  examId: q.examId,
+  groupId: makeGroupId(q.examId, q.group),
+  question: q.question,
+  choice1: q.choice1,
+  choice2: q.choice2,
+  choice3: q.choice3,
+  choice4: q.choice4,
+  answer: q.answer
+});
 
       savedCount++;
     }
