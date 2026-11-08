@@ -986,7 +986,21 @@ async function loadManageQuestions() {
       const question = document.createElement("p");
       question.textContent = q.question;
       box.appendChild(question);
+　　　// 問題に画像が登録されている場合は表示
+if (q.image) {
+  const img = document.createElement("img");
+  img.src = "images/" + encodeURIComponent(q.image);
+  img.alt = "問題の画像";
+  img.style.display = "block";
+  img.style.maxWidth = "100%";
+  img.style.maxHeight = "350px";
+  img.style.width = "auto";
+  img.style.height = "auto";
+  img.style.objectFit = "contain";
+  img.style.margin = "12px auto";
 
+  box.appendChild(img);
+}
       for (let i = 1; i <= 4; i++) {
         const choice = document.createElement("p");
         choice.style.margin = "5px 0";
