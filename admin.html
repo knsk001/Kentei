@@ -202,7 +202,13 @@ import {
    deleteDoc
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
-
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpXARufKNeaNgBOv30i83mQH5LXuswgBI",
@@ -215,7 +221,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
   
 const db = getFirestore(app);
-
+const storage = getStorage(app);
 
 const loginButton = document.getElementById("loginButton");
 loginButton.disabled = false;
@@ -992,9 +998,14 @@ async function loadManageQuestions() {
       question.textContent = q.question;
       box.appendChild(question);
 　　　// 問題に画像が登録されている場合は表示
-if (q.image) {
+// 問題に画像が登録されている場合は表示
+if (q.imageUrl || q.image) {
   const img = document.createElement("img");
-  img.src = "images/" + encodeURIComponent(q.image);
+
+  // Firebase Storageの画像を優先
+  img.src = q.imageUrl ||
+    "images/" + encodeURIComponent(q.image);
+
   img.alt = "問題の画像";
   img.style.display = "block";
   img.style.maxWidth = "100%";
@@ -1096,7 +1107,80 @@ if (q.image) {
       });
 
       box.appendChild(editButton);
-　　　
+　　　// 画像追加・変更ボタン
+const imageButton = document.createElement("button");
+imageButton.textContent = q.image ? "画像変更" : "画像追加";
+imageButton.style.marginLeft = "10px";
+
+const imageInput = document.createElement("input");
+imageInput.type = "file";
+imageInput.accept = "image/png,image/jpeg,image/webp";
+imageInput.style.display = "none";
+
+imageButton.addEventListener("click", () => imageInput.click());
+
+box.appendChild(imageButton);
+box.appendChild(imageInput);
+      // 画像を選択したときの処理
+imageInput.addEventListener("change", async () => {
+  const file = imageInput.files[0];
+  if (!file) return;
+
+  // 画像形式と容量を確認
+  if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+    alert("PNG・JPEG・WebP画像を選択してください。");
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert("画像は5MB以下にしてください。");
+    return;
+  }
+
+  if (!confirm("この画像を問題に登録しますか？")) return;
+
+  imageButton.disabled = true;
+  imageButton.textContent = "アップロード中...";
+
+  try {
+    // 問題IDごとに画像を保存
+    const extension = file.type === "image/png"
+      ? "png"
+      : file.type === "image/webp" ? "webp" : "jpg";
+
+    const imagePath =
+      `question-images/${q.id}/${crypto.randomUUID()}.${extension}`;
+
+    const imageRef = ref(storage, imagePath);
+
+    await uploadBytes(imageRef, file, {
+      contentType: file.type
+    });
+
+    const imageUrl = await getDownloadURL(imageRef);
+
+    // Firestoreに画像情報を保存
+    try {
+      await updateDoc(doc(db, "questions", q.id), {
+        imageUrl: imageUrl,
+        imagePath: imagePath
+      });
+    } catch (error) {
+      await deleteObject(imageRef).catch(console.error);
+      throw error;
+    }
+
+    alert("画像を登録しました。");
+    await loadManageQuestions();
+
+  } catch (error) {
+    console.error("画像登録エラー：", error);
+    alert("画像を登録できませんでした：" + error.message);
+  } finally {
+    imageButton.disabled = false;
+    imageButton.textContent = q.image ? "画像変更" : "画像追加";
+  }
+});
       // 問題の削除ボタン
       const deleteButton = document.createElement("button");
       deleteButton.textContent = "削除";
