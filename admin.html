@@ -77,7 +77,16 @@
 <section id="adminArea" style="display:none;">
 <h2>問題データ管理</h2>
 
+<!-- 学習コースの選択 -->
+<h3>学習コースの選択</h3>
 
+<select id="courseType">
+  <option value="kentei">検定対策</option>
+  <option value="test">定期考査対策</option>
+  <option value="joho1">情報Ⅰ</option>
+</select>
+
+<hr>
   <h3>① 検定の選択</h3>
   <select id="examType">
     <option value="joho_shori">情報処理</option>
@@ -159,14 +168,15 @@
 
 <hr>
 
-<h3>⑤ 受験番号の一括発行・管理</h3>
+  <h3>⑤ 受験番号の一括発行・管理</h3>
 
 <p>
-  6種類の検定の受験番号を同時に発行します。
+  選択した学習コースの各科目について、
+  3桁の受験番号を一括発行します。
 </p>
 
 <button id="issueCodeButton">
-  全検定の受験番号を一括発行
+  選択コースの受験番号を一括発行
 </button>
 
 <div id="issuedCodeArea"></div>
@@ -706,7 +716,53 @@ document.getElementById("saveGroupButton")
 
 document.getElementById("examType")
   .addEventListener("change", loadGroups);
+// 学習コースごとの科目一覧
+const courseSubjects = {
+  kentei: [
+    { id: "joho_shori", name: "情報処理" },
+    { id: "joho_shori_2", name: "情報処理２級" },
+    { id: "joho_kiso", name: "情報基礎" },
+    { id: "bunsho_3", name: "文書３級" },
+    { id: "bunsho_2", name: "文書２級" },
+    { id: "bunsho_1", name: "文書１級" }
+  ],
+  test: [
+    { id: "test_1", name: "1学期中間考査" },
+    { id: "test_2", name: "1学期期末考査" },
+    { id: "test_3", name: "2学期中間考査" },
+    { id: "test_4", name: "2学期期末考査" },
+    { id: "test_5", name: "学年末考査" }
+  ],
+  joho1: [
+    { id: "joho1_society", name: "情報社会の問題解決" },
+    { id: "joho1_design", name: "コミュニケーションと情報デザイン" },
+    { id: "joho1_computer", name: "コンピュータとプログラミング" },
+    { id: "joho1_network", name: "情報通信ネットワークとデータの活用" },
+    { id: "joho1_common", name: "共通テスト対策" }
+  ]
+};
 
+// コース変更時に科目一覧を更新
+document.getElementById("courseType")
+  .addEventListener("change", () => {
+
+    const course =
+      document.getElementById("courseType").value;
+
+    const examSelect =
+      document.getElementById("examType");
+
+    examSelect.replaceChildren();
+
+    courseSubjects[course].forEach(subject => {
+      const option = document.createElement("option");
+      option.value = subject.id;
+      option.textContent = subject.name;
+      examSelect.appendChild(option);
+    });
+
+    loadGroups();
+  });
 
 
 function generateExamCodes() {
@@ -759,24 +815,36 @@ async function saveExamCodes() {
       snapshot.docs.map(d => d.id)
     );
 
-    const exams = [
-      { id: "joho_shori", name: "情報処理" },
-      { id: "joho_shori_2", name: "情報処理２級" },
-      { id: "joho_kiso", name: "情報基礎" },
-      { id: "bunsho_3", name: "文書３級" },
-      { id: "bunsho_2", name: "文書２級" },
-      { id: "bunsho_1", name: "文書１級" }
-    ];
+    // 現在選択している学習コース
+const selectedCourse =
+  document.getElementById("courseType").value;
 
-    // 6検定分の番号を生成
-    const codes = exams.map(exam => {
+// 選択したコースの科目だけを発行対象にする
+const exams = courseSubjects[selectedCourse];
+
+// 発行可能な3桁の番号が十分に残っているか確認
+if (1000 - usedCodes.size < exams.length) {
+  throw new Error(
+    "受験番号の空きが不足しています。発行できません。"
+  );
+}
+
+// 選択した学習コースの科目数だけ番号を生成
+const codes = exams.map(exam => {
       let code;
 
       do {
-        const number = new Uint32Array(1);
-        crypto.getRandomValues(number);
-        code = String(number[0] % 1000).padStart(3, "0");
-      } while (usedCodes.has(code));
+  const number = new Uint32Array(1);
+  crypto.getRandomValues(number);
+
+  // 0～999の番号を均等に生成
+  if (number[0] >= 4294967000) {
+    continue;
+  }
+
+  code = String(number[0] % 1000).padStart(3, "0");
+
+} while (usedCodes.has(code));
 
       usedCodes.add(code);
 
@@ -790,22 +858,33 @@ async function saveExamCodes() {
     // 新しい番号と既存番号の無効化を一括保存
     const batch = writeBatch(db);
 
-    snapshot.forEach(oldDoc => {
-      if (oldDoc.data().enabled === true) {
-        batch.update(oldDoc.ref, {
-          enabled: false
-        });
-      }
+    // 今回発行する科目の古い番号だけを無効化
+const targetExamIds = new Set(
+  exams.map(exam => exam.id)
+);
+
+snapshot.forEach(oldDoc => {
+  const oldData = oldDoc.data();
+
+  if (
+    oldData.enabled === true &&
+    targetExamIds.has(oldData.examId)
+  ) {
+    batch.update(oldDoc.ref, {
+      enabled: false
     });
+  }
+});
 
     codes.forEach(item => {
-      batch.set(doc(db, "examCodes", item.code), {
-        examId: item.examId,
-        examName: item.examName,
-        enabled: true,
-        createdAt: new Date().toISOString()
-      });
-    });
+  batch.set(doc(db, "examCodes", item.code), {
+    courseType: selectedCourse,
+    examId: item.examId,
+    examName: item.examName,
+    enabled: true,
+    createdAt: new Date().toISOString()
+  });
+});
 
     await batch.commit();
 
@@ -825,9 +904,29 @@ document.getElementById("issueCodeButton")
     const area = document.getElementById("issuedCodeArea");
     const list = document.getElementById("issuedCodeList");
 
-    if (!confirm("6検定の受験番号を一括発行します。以前の番号は無効になります。よろしいですか？")) {
-      return;
-    }
+    // 選択中の学習コース
+const selectedCourse =
+  document.getElementById("courseType").value;
+
+const courseNames = {
+  kentei: "検定対策",
+  test: "定期考査対策",
+  joho1: "情報Ⅰ"
+};
+
+const subjectCount =
+  courseSubjects[selectedCourse].length;
+
+// 発行前の確認
+if (!confirm(
+  `${courseNames[selectedCourse]}の${subjectCount}科目について、` +
+  `受験番号を一括発行します。\n` +
+  `対象科目の以前の番号は無効になります。\n` +
+  `ほかの学習コースの番号は変更しません。\n\n` +
+  `よろしいですか？`
+)) {
+  return;
+}
 
     button.disabled = true;
     button.textContent = "発行中...";
@@ -861,15 +960,19 @@ document.getElementById("issueCodeButton")
         });
       });
 
-      area.textContent = "6検定の受験番号を発行しました。";
-      list.replaceChildren(table);
+    // 発行完了メッセージ
+area.textContent =
+  `${courseNames[selectedCourse]}の${codes.length}科目について、受験番号を発行しました。`;
+
+// 3つの学習コースの有効な受験番号を再取得して表示
+await loadIssuedCodes();
 
     } catch (error) {
       console.error(error);
       alert("受験番号の発行に失敗しました。");
     } finally {
       button.disabled = false;
-      button.textContent = "全検定の受験番号を一括発行";
+      button.textContent = "選択コースの受験番号を一括発行";
     }
   });
 
@@ -889,14 +992,12 @@ async function loadIssuedCodes() {
       .map(d => ({ code: d.id, ...d.data() }))
       .filter(item => item.enabled === true);
 
-    const examOrder = [
-      "joho_shori",
-      "joho_shori_2",
-      "joho_kiso",
-      "bunsho_3",
-      "bunsho_2",
-      "bunsho_1"
-    ];
+    // 3つの学習コースの科目順に並べる
+const examOrder = [
+  ...courseSubjects.kentei,
+  ...courseSubjects.test,
+  ...courseSubjects.joho1
+].map(subject => subject.id);
 
     codes.sort((a, b) =>
       examOrder.indexOf(a.examId) -
@@ -909,24 +1010,45 @@ async function loadIssuedCodes() {
 
     const header = table.insertRow();
 
-    ["検定名", "受験番号"].forEach(value => {
-      const th = document.createElement("th");
-      th.textContent = value;
-      th.style.padding = "8px";
-      th.style.border = "1px solid #ccc";
-      header.appendChild(th);
-    });
+    // 一覧の見出し
+["学習コース", "科目名", "受験番号"].forEach(value => {
+  const th = document.createElement("th");
+  th.textContent = value;
+  th.style.padding = "8px";
+  th.style.border = "1px solid #ccc";
+  header.appendChild(th);
+});
 
-    codes.forEach(item => {
-      const row = table.insertRow();
+// 学習コース名の対応表
+const courseNames = {
+  kentei: "検定対策",
+  test: "定期考査対策",
+  joho1: "情報Ⅰ"
+};
 
-      [item.examName, item.code].forEach(value => {
-        const cell = row.insertCell();
-        cell.textContent = value;
-        cell.style.padding = "8px";
-        cell.style.border = "1px solid #ccc";
-      });
-    });
+// 発行済み受験番号を表示
+codes.forEach(item => {
+  const row = table.insertRow();
+
+  // 以前発行した番号にはcourseTypeがないため、科目IDから判定
+  const courseType = item.courseType ||
+    (courseSubjects.kentei.some(s => s.id === item.examId)
+      ? "kentei"
+      : courseSubjects.test.some(s => s.id === item.examId)
+        ? "test"
+        : "joho1");
+
+  [
+    courseNames[courseType],
+    item.examName,
+    item.code
+  ].forEach(value => {
+    const cell = row.insertCell();
+    cell.textContent = value;
+    cell.style.padding = "8px";
+    cell.style.border = "1px solid #ccc";
+  });
+});
 
     list.replaceChildren(table);
 
