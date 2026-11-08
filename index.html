@@ -105,18 +105,7 @@ document.getElementById("courseType")
 
   });
 
-    const course = this.value;
-    const examCodeArea =
-      document.getElementById("examCodeArea");
-
-    if (course === "kentei") {
-      examCodeArea.style.display = "block";
-    } else {
-      examCodeArea.style.display = "none";
-    }
-
-  });
-
+   
 let current = 0;
 let score = 0;
 
@@ -211,9 +200,11 @@ const availableQuestions = (window.firestoreQuestions || [])
 // 問題数の確認
 if (availableQuestions.length < QUESTION_COUNT) {
   alert(
-    "問題が不足しています。\n" +
+    "この科目の出題可能な問題が不足しています。\n" +
+    "科目ID：" + selectedExam + "\n" +
     "現在：" + availableQuestions.length + "問\n" +
-    "必要：" + QUESTION_COUNT + "問"
+    "必要：" + QUESTION_COUNT + "問\n\n" +
+    "先生に確認してください。"
   );
   return;
 }
@@ -551,13 +542,30 @@ async function verifyExamCode() {
 
     const data = codeSnapshot.data();
 
-    if (data.enabled !== true) {
-      alert("この受験番号は現在使用できません。");
-      return;
-    }
+if (data.enabled !== true) {
+  alert("この受験番号は現在使用できません。");
+  return;
+}
 
-    // 対応する検定を記録
-    window.selectedExam = data.examId;
+// 生徒が選択した学習コース
+const selectedCourse =
+  document.getElementById("courseType").value;
+
+// 受験番号に対応する学習コース
+// 以前発行した検定対策の番号にも対応
+const codeCourse = data.courseType || "kentei";
+
+// 学習コースと受験番号の一致を確認
+if (selectedCourse !== codeCourse) {
+  alert(
+    "選択した学習コースと受験番号が一致しません。\n" +
+    "学習コースまたは受験番号を確認してください。"
+  );
+  return;
+}
+
+// 対応する科目を記録
+window.selectedExam = data.examId;
 
     return data.examId;
 
