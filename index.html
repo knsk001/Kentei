@@ -270,10 +270,14 @@ if (current >= quizQuestions.length) {
     <p id="result"></p>
   `;
 // 問題文の下に画像を表示する
-if (q.image) {
+// 問題文の下に画像を表示する
+if (q.imageUrl || q.image) {
   const img = document.createElement("img");
 
-  img.src = "images/" + encodeURIComponent(q.image);
+  // Firebase Storageの画像を優先して表示
+  img.src = q.imageUrl ||
+    "images/" + encodeURIComponent(q.image);
+
   img.alt = "問題の画像";
 
   img.style.display = "block";
@@ -441,6 +445,7 @@ async function loadQuestions() {
         groupId: data.groupId,
         question: data.question,
         image: data.image || "",
+        imageUrl: data.imageUrl || "",
         choices: [
           data.choice1,
           data.choice2,
