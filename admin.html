@@ -1109,7 +1109,8 @@ if (q.imageUrl || q.image) {
       box.appendChild(editButton);
 　　　// 画像追加・変更ボタン
 const imageButton = document.createElement("button");
-imageButton.textContent = q.image ? "画像変更" : "画像追加";
+imageButton.textContent =
+  (q.imageUrl || q.image) ? "画像変更" : "画像追加";
 imageButton.style.marginLeft = "10px";
 
 const imageInput = document.createElement("input");
@@ -1121,6 +1122,50 @@ imageButton.addEventListener("click", () => imageInput.click());
 
 box.appendChild(imageButton);
 box.appendChild(imageInput);
+      // 画像削除ボタン
+const imageDeleteButton = document.createElement("button");
+imageDeleteButton.textContent = "画像削除";
+imageDeleteButton.style.marginLeft = "10px";
+imageDeleteButton.style.background = "#c62828";
+
+// 画像が登録されている場合だけ表示
+imageDeleteButton.style.display =
+  (q.imageUrl || q.image) ? "inline-block" : "none";
+
+imageDeleteButton.addEventListener("click", async () => {
+  if (!confirm("この問題の画像を削除しますか？")) return;
+
+  imageDeleteButton.disabled = true;
+
+  try {
+    // 先にFirestoreの画像情報を削除
+    await updateDoc(doc(db, "questions", q.id), {
+      image: "",
+      imageUrl: "",
+      imagePath: ""
+    });
+
+    // Firebase Storageの画像ファイルを削除
+    if (q.imagePath) {
+      try {
+        await deleteObject(ref(storage, q.imagePath));
+      } catch (error) {
+        console.warn("Storageの画像削除エラー：", error);
+        alert("問題から画像を解除しましたが、Storage上のファイル削除には失敗しました。");
+      }
+    }
+
+    alert("問題から画像を削除しました。");
+    await loadManageQuestions();
+
+  } catch (error) {
+    console.error("画像削除エラー：", error);
+    alert("画像を削除できませんでした：" + error.message);
+    imageDeleteButton.disabled = false;
+  }
+});
+
+box.appendChild(imageDeleteButton);
       // 画像を選択したときの処理
 imageInput.addEventListener("change", async () => {
   const file = imageInput.files[0];
@@ -1156,7 +1201,8 @@ imageInput.addEventListener("change", async () => {
     await uploadBytes(imageRef, file, {
       contentType: file.type
     });
-
+// 変更前の画像の保存先を記録
+const oldImagePath = q.imagePath || "";
     const imageUrl = await getDownloadURL(imageRef);
 
     // Firestoreに画像情報を保存
@@ -1169,7 +1215,14 @@ imageInput.addEventListener("change", async () => {
       await deleteObject(imageRef).catch(console.error);
       throw error;
     }
-
+// 新しい画像の保存が完了したら古い画像を削除
+if (oldImagePath && oldImagePath !== imagePath) {
+  try {
+    await deleteObject(ref(storage, oldImagePath));
+  } catch (error) {
+    console.warn("古い画像を削除できませんでした：", error);
+  }
+}
     alert("画像を登録しました。");
     await loadManageQuestions();
 
@@ -1178,7 +1231,8 @@ imageInput.addEventListener("change", async () => {
     alert("画像を登録できませんでした：" + error.message);
   } finally {
     imageButton.disabled = false;
-    imageButton.textContent = q.image ? "画像変更" : "画像追加";
+    imageButton.textContent =
+  (q.imageUrl || q.image) ? "画像変更" : "画像追加";
   }
 });
       // 問題の削除ボタン
