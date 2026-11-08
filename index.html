@@ -269,7 +269,29 @@ if (current >= quizQuestions.length) {
     <div id="choices"></div>
     <p id="result"></p>
   `;
+// 問題文の下に画像を表示する
+if (q.image) {
+  const img = document.createElement("img");
 
+  img.src = "images/" + encodeURIComponent(q.image);
+  img.alt = "問題の画像";
+
+  img.style.display = "block";
+  img.style.maxWidth = "100%";
+  img.style.maxHeight = "350px";
+  img.style.width = "auto";
+  img.style.height = "auto";
+  img.style.objectFit = "contain";
+  img.style.margin = "15px auto";
+  img.style.cursor = "zoom-in";
+
+  // 画像をクリックすると拡大
+  img.addEventListener("click", () => {
+    window.open(img.src, "_blank");
+  });
+
+  document.getElementById("choices").before(img);
+}
   const area = document.getElementById("choices");
 
   q.choices.forEach((choice, index) => {
@@ -418,6 +440,7 @@ async function loadQuestions() {
         examId: data.examId,
         groupId: data.groupId,
         question: data.question,
+        image: data.image || "",
         choices: [
           data.choice1,
           data.choice2,
