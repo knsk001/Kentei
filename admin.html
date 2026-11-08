@@ -381,9 +381,13 @@ function parseCsv(text) {
 ];
 
   if (!validRows.length ||
-      validRows[0].map(v => v.trim()).join(",") !== headers.join(",")) {
-    throw new Error("CSVの見出し9列が正しくありません。");
-  }
+    validRows[0].map(v => v.trim().replace(/^\uFEFF/, "")).join(",") !== headers.join(",")) {
+  throw new Error(
+    "CSVの見出しが一致しません。\n" +
+    "実際：" + JSON.stringify(validRows[0]) + "\n" +
+    "必要：" + JSON.stringify(headers)
+  );
+}
 
   return validRows.slice(1).map((r, i) => {
 if (r.length !== 9) {
