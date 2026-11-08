@@ -44,7 +44,21 @@
 <main id="app">
   <h2>学習トレーニング</h2>
 
-  
+  <!-- 学習コースの選択 -->
+<div id="courseSelectArea">
+
+  <h3>学習コースを選択してください</h3>
+
+  <select id="courseType"
+          style="font-size:18px; padding:12px; width:80%;">
+
+    <option value="kentei">検定対策</option>
+    <option value="test">定期考査対策</option>
+    <option value="joho1">情報Ⅰ</option>
+
+  </select>
+
+</div>
 <div id="examCodeArea">
   <h3>受験番号を入力してください</h3>
 
@@ -81,7 +95,27 @@
 
 
 <script>
+// 学習コースに応じて受験番号欄を切り替える
+// すべての学習コースで受験番号を使用
+document.getElementById("courseType")
+  .addEventListener("change", function () {
 
+    document.getElementById("examCodeArea")
+      .style.display = "block";
+
+  });
+
+    const course = this.value;
+    const examCodeArea =
+      document.getElementById("examCodeArea");
+
+    if (course === "kentei") {
+      examCodeArea.style.display = "block";
+    } else {
+      examCodeArea.style.display = "none";
+    }
+
+  });
 
 let current = 0;
 let score = 0;
