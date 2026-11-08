@@ -375,10 +375,10 @@ function parseCsv(text) {
   );
 
   const headers = [
-    "examId", "group", "question",
-    "choice1", "choice2", "choice3",
-    "choice4", "answer"
-  ];
+  "examId", "group", "question",
+  "choice1", "choice2", "choice3",
+  "choice4", "answer"
+];
 
   if (!validRows.length ||
       validRows[0].map(v => v.trim()).join(",") !== headers.join(",")) {
@@ -386,10 +386,11 @@ function parseCsv(text) {
   }
 
   return validRows.slice(1).map((r, i) => {
-    if (r.length !== 8) {
-      throw new Error(`${i + 2}行目の列数が8列ではありません。`);
-    }
+if (r.length !== 9) {
+  throw new Error(`${i + 2}行目の列数が9列ではありません。`);
+}
 
+    
     const data = Object.fromEntries(
       headers.map((key, j) => [key, r[j].trim()])
     );
