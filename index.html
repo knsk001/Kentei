@@ -285,11 +285,19 @@ if (current >= quizQuestions.length) {
     item => item.correct
   );
 
-  document.getElementById("app").innerHTML = `
+document.getElementById("app").innerHTML = `
+  <div style="
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:30px;
+    flex-wrap:wrap;
+  ">
     <h2>第${current + 1}問 / ${quizQuestions.length}問</h2>
     <h3 id="timer" style="color:#1769aa;">
       残り時間：${TIME_LIMIT}秒
     </h3>
+  </div>
     <p>${q.question}</p>
     <div id="choices"></div>
     <p id="result"></p>
