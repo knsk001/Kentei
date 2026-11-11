@@ -252,12 +252,48 @@ if (current >= quizQuestions.length) {
   hour12: false
 });
 
-  document.getElementById("app").innerHTML = `
+  const points = Math.round(
+  score / quizQuestions.length * 100
+);
+
+// 得点によって背景色を決める
+let bgColor = "#ffffff";
+
+if (points === 100) {
+  bgColor = "#ffe4ef";  // 薄いピンク
+} else if (points >= 80) {
+  bgColor = "#e5f6e5";  // 薄い緑
+} else if (points >= 70) {
+  bgColor = "#fff8d6";  // 薄い黄色
+}
+
+document.getElementById("app").innerHTML = `
+  <div style="
+    background:${bgColor};
+    padding:30px 15px;
+    border-radius:12px;
+  ">
     <h2>学習終了（${endTime}）</h2>
     <p>${quizQuestions.length}問中${score}問正解</p>
-    <h2>${Math.round(score / quizQuestions.length * 100)}点</h2>
-    <button onclick="startQuiz()">もう一度挑戦</button>
-  `;
+    <h2>${points}点</h2>
+    <div style="
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  flex-wrap:wrap;
+  margin-top:20px;
+">
+  <button onclick="startQuiz()">
+    もう一度挑戦する
+  </button>
+
+  <button onclick="location.reload()"
+    style="background:#777;">
+    最初に戻る
+  </button>
+</div>
+  </div>
+`;
   return;
 }
 
