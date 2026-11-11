@@ -273,7 +273,16 @@ document.getElementById("app").innerHTML = `
     padding:30px 15px;
     border-radius:12px;
   ">
-    <h2>学習終了（${endTime}）</h2>
+    <h2>
+  ${{
+    kentei: "検定対策",
+    test: "定期考査対策",
+    joho1: "情報Ⅰ"
+  }[window.selectedCourseType] || "学習"}
+  　${window.selectedExamName || ""}
+</h2>
+
+<h2>学習終了（${endTime}）</h2>
     <p>${quizQuestions.length}問中${score}問正解</p>
     <h2>${points}点</h2>
     <div style="
@@ -585,7 +594,9 @@ async function verifyExamCode() {
     }
 
     const data = codeSnapshot.data();
-
+// 受験番号に対応する科目名を保存
+window.selectedExamName = data.examName || "";
+window.selectedCourseType = data.courseType || "kentei";
 if (data.enabled !== true) {
   alert("この受験番号は現在使用できません。");
   return;
