@@ -236,7 +236,9 @@ if (availableQuestions.length < QUESTION_COUNT) {
 
   current = 0;
   score = 0;
-
+// 通常学習を開始するときに復習記録をリセット
+wrongQuestions = [];
+isReviewMode = false;
   showQuestion();
 }
 
