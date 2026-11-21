@@ -298,14 +298,21 @@ document.getElementById("app").innerHTML = `
   flex-wrap:wrap;
   margin-top:20px;
 ">
-  <button onclick="startQuiz()">
-    もう一度挑戦する
+  ${wrongQuestions.length > 0 ? `
+  <button onclick="startReview()"
+    style="background:#e67e22;">
+    間違えた${wrongQuestions.length}問を復習する
   </button>
+` : ''}
 
-  <button onclick="location.reload()"
-    style="background:#777;">
-    最初に戻る
-  </button>
+<button onclick="startQuiz()">
+  もう一度挑戦する
+</button>
+
+<button onclick="location.reload()"
+  style="background:#777;">
+  最初に戻る
+</button>
 </div>
   </div>
 `;
@@ -472,6 +479,31 @@ if (correct) {
 
 function nextQuestion() {
   current++;
+  showQuestion();
+}
+  // 間違えた問題だけを復習する
+function startReview() {
+
+  // 復習する問題がない場合
+  if (wrongQuestions.length === 0) {
+    alert("復習する問題はありません。");
+    return;
+  }
+
+  // 復習対象を出題問題に設定
+  quizQuestions = [...wrongQuestions];
+
+  // 前回の間違い記録をリセット
+  wrongQuestions = [];
+
+  // 復習モードに切り替え
+  isReviewMode = true;
+
+  // 問題番号と得点をリセット
+  current = 0;
+  score = 0;
+
+  // 復習開始
   showQuestion();
 }
 </script>
