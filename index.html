@@ -109,6 +109,12 @@ document.getElementById("courseType")
 let current = 0;
 let score = 0;
 
+// 間違えた問題を記録する
+let wrongQuestions = [];
+
+// 復習中かどうかを判定する
+let isReviewMode = false;
+
 // 制限時間の設定
 const TIME_LIMIT = 20;
 let timeLeft = TIME_LIMIT;
@@ -399,6 +405,9 @@ if (q.imageUrl || q.image) {
     if (timeLeft <= 0) {
       clearInterval(timerId);
 
+        // 時間切れの問題を復習用に記録
+  wrongQuestions.push(q);
+
       document.querySelectorAll("#choices button")
         .forEach(btn => btn.disabled = true);
 
@@ -418,9 +427,14 @@ function checkAnswer(selected) {
   clearInterval(timerId);
 
   const q = quizQuestions[current];
-  const correct = selected === q.answer;
+const correct = selected === q.answer;
 
-  if (correct) score++;
+if (correct) {
+  score++;
+} else {
+  // 間違えた問題を復習用に記録
+  wrongQuestions.push(q);
+}
 
   // 選択肢の色を変更
   const buttons =
